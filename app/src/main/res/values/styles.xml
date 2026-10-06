@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="ink">#1D2340</color>
+    <color name="pen">#2C3E9E</color>
+    <color name="paper">#F6F5F1</color>
+    <style name="AppTheme" parent="@android:style/Theme.Material.Light.NoActionBar">
+        <item name="android:colorPrimary">@color/pen</item>
+        <item name="android:colorPrimaryDark">@color/ink</item>
+        <item name="android:colorAccent">@color/pen</item>
+        <item name="android:windowBackground">@color/paper</item>
+        <item name="android:statusBarColor">@color/ink</item>
+        <item name="android:navigationBarColor">@color/ink</item>
+    </style>
+</resources>
