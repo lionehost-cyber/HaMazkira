@@ -193,15 +193,15 @@ const NATIVE=!!window.Android;
 function persist(){lsSave();syncNative()}
 function saveTask(t){t.updated=Date.now();const i=tasks.findIndex(x=>x.id===t.id);if(i>=0)tasks[i]=t;else tasks.push(t);persist();render()}
 function removeTask(id){tasks=tasks.filter(x=>x.id!==id);persist();render()}
-function saveSettings(){lsSave()}
+function saveSettings(){persist()}
 /* hand every upcoming reminder to Android so it rings even when the app is closed */
 function syncNative(){
   if(!NATIVE)return; const now=Date.now(),list=[];
   for(const t of tasks){ if(t.done)continue;
     const when0=at(t).getTime();
     const body=`${t.time?"בשעה "+t.time+" · ":""}${fmtLong.format(parseYmd(t.date))}${t.location?" · "+t.location:""}`;
-    (t.reminders||[]).forEach(m=>{const w=when0-m*6e4;if(w>now)list.push({key:`${t.id}|${t.date}|${m}`,id:t.id,date:t.date,at:w,title:(m?`בעוד ${remLabel(m).replace(" לפני","")}: `:"עכשיו: ")+t.title,body})});
-    if(t.snoozeUntil&&Number(t.snoozeUntil)>now)list.push({key:`snooze|${t.id}|${t.snoozeUntil}`,id:t.id,date:t.date,at:Number(t.snoozeUntil),title:"תזכורת: "+t.title,body});
+    (t.reminders||[]).forEach(m=>{const w=when0-m*6e4;if(w>now)list.push({key:`${t.id}|${t.date}|${m}`,id:t.id,date:t.date,at:w,wa:waLink(t),waTap:!!settings.waTap,title:(m?`בעוד ${remLabel(m).replace(" לפני","")}: `:"עכשיו: ")+t.title,body})});
+    if(t.snoozeUntil&&Number(t.snoozeUntil)>now)list.push({key:`snooze|${t.id}|${t.snoozeUntil}`,id:t.id,date:t.date,at:Number(t.snoozeUntil),wa:waLink(t),waTap:!!settings.waTap,title:"תזכורת: "+t.title,body});
   }
   try{Android.setAlarms(JSON.stringify(list))}catch(e){}
 }
@@ -493,7 +493,9 @@ function viewSettings(){
   const open=tasks.filter(t=>!t.done);
   return `<h2 class="sec">הגדרות</h2>
   <div class="card"><h3>WhatsApp</h3><p>המספר שאליו נפתחת הודעת התזכורת. השאר ריק כדי לבחור איש קשר בכל פעם. WhatsApp ייפתח עם ההודעה מוכנה, ואתה לוחץ שליחה.</p>
-    <label class="field"><span>מספר טלפון</span><input class="inp" id="s-phone" inputmode="tel" dir="ltr" placeholder="050-0000000" value="${esc(settings.phone)}"></label></div>
+    <label class="field"><span>מספר טלפון</span><input class="inp" id="s-phone" inputmode="tel" dir="ltr" placeholder="050-0000000" value="${esc(settings.phone)}"></label>
+    ${window.Android?`<p style="margin-top:8px">בכל התראה יש כפתור WhatsApp שפותח את התזכורת מוכנה לשליחה.</p>
+    <div class="seg" id="s-watap"><button type="button" data-v="0" aria-pressed="${!settings.waTap}">לחיצה על ההתראה פותחת את האפליקציה</button><button type="button" data-v="1" aria-pressed="${!!settings.waTap}">לחיצה על ההתראה פותחת WhatsApp</button></div>`:""}</div>
   <div class="card"><h3>תזכורת ברירת מחדל</h3><p>מה ייבחר אוטומטית בכל משימה חדשה.</p>
     <div class="seg" id="s-rem">${REM.map(([m,l])=>`<button type="button" data-v="${m}" aria-pressed="${settings.defaultRem.includes(m)}">${l}</button>`).join("")}</div></div>
   <div class="card"><h3>התראות</h3><p>${window.Android&&!Android.notificationsEnabled()?"ההתראות כבויות. בלי הרשאה המזכירה לא תוכל להזכיר לך כשהיא סגורה.":"התזכורות מגיעות כהתראה בטלפון גם כשהאפליקציה סגורה, וגם אחרי הפעלה מחדש של הטלפון."}</p>
@@ -522,6 +524,7 @@ $("#view").addEventListener("click",e=>{
   if(e.target.closest("#s-restore-btn")){try{const j=JSON.parse($("#s-restore").value);if(!Array.isArray(j.tasks))throw 0;const ids=new Set(tasks.map(t=>t.id));j.tasks.forEach(t=>{if(!ids.has(t.id))tasks.push(t)});settings=Object.assign(settings,j.settings||{});persist();render();toast(`שוחזרו ${j.tasks.length} משימות`)}catch(err){toast("הטקסט שהודבק אינו גיבוי תקין")}return}
   if(e.target.closest("#mic")){Android.startVoice();return}
   if(e.target.closest("#s-ics")){saveIcs(tasks.filter(t=>!t.done),"hamazkira.ics");return}
+  const wt=e.target.closest("#s-watap button");if(wt){settings.waTap=wt.dataset.v==="1";saveSettings();render();toast(settings.waTap?"לחיצה על התזכורת תפתח את WhatsApp":"לחיצה על התזכורת תפתח את המזכירה");return}
   const sr=e.target.closest("#s-rem button");if(sr){sr.setAttribute("aria-pressed",String(sr.getAttribute("aria-pressed")!=="true"));settings.defaultRem=[...document.querySelectorAll("#s-rem [aria-pressed=true]")].map(b=>Number(b.dataset.v));saveSettings();return}
   const a=e.target.closest("[data-a]");if(!a)return;const id=a.closest("[data-id]").dataset.id;const t=tasks.find(x=>x.id===id);if(!t)return;
   ({done:()=>markDone(t),undo:()=>saveTask(Object.assign({},t,{done:false})),snooze:()=>snoozeMenu(t),edit:()=>openForm(t),ics:()=>saveIcs([t],"tazkoret.ics")})[a.dataset.a]?.();
