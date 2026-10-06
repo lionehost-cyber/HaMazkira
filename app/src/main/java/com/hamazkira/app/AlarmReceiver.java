@@ -8,6 +8,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.drawable.Icon;
+import android.net.Uri;
 
 /** Fires when a reminder is due and shows the notification. */
 public class AlarmReceiver extends BroadcastReceiver {
@@ -18,7 +19,8 @@ public class AlarmReceiver extends BroadcastReceiver {
         String key = i.getStringExtra("key");
         AlarmStore.remove(c, key);
         show(c, key, i.getStringExtra("id"), i.getStringExtra("date"),
-                i.getStringExtra("title"), i.getStringExtra("body"));
+                i.getStringExtra("title"), i.getStringExtra("body"),
+                i.getStringExtra("wa"), i.getBooleanExtra("waTap", false));
         MainActivity.pingWeb();
     }
 
@@ -33,7 +35,8 @@ public class AlarmReceiver extends BroadcastReceiver {
         }
     }
 
-    static void show(Context c, String key, String id, String date, String title, String body) {
+    static void show(Context c, String key, String id, String date, String title, String body,
+                     String wa, boolean waTap) {
         ensureChannel(c);
         NotificationManager nm = c.getSystemService(NotificationManager.class);
         if (nm == null) return;
@@ -57,9 +60,19 @@ public class AlarmReceiver extends BroadcastReceiver {
                 .setShowWhen(true);
 
         b.addAction(new Notification.Action.Builder((Icon) null, "בוצע",
-                actionPi(c, ActionReceiver.ACTION_DONE, nid, key, id, date, title, body)).build());
+                actionPi(c, ActionReceiver.ACTION_DONE, nid, key, id, date, title, body, wa, waTap)).build());
         b.addAction(new Notification.Action.Builder((Icon) null, "דחה 10 דק׳",
-                actionPi(c, ActionReceiver.ACTION_SNOOZE, nid, key, id, date, title, body)).build());
+                actionPi(c, ActionReceiver.ACTION_SNOOZE, nid, key, id, date, title, body, wa, waTap)).build());
+
+        // Open WhatsApp with the reminder text ready to send.
+        if (wa != null && !wa.isEmpty()) {
+            Intent waIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(wa))
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            PendingIntent waPi = PendingIntent.getActivity(c, (key + "|wa").hashCode(), waIntent,
+                    PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+            b.addAction(new Notification.Action.Builder((Icon) null, "WhatsApp", waPi).build());
+            if (waTap) b.setContentIntent(waPi);
+        }
 
         try {
             nm.notify(nid, b.build());
@@ -69,13 +82,16 @@ public class AlarmReceiver extends BroadcastReceiver {
     }
 
     private static PendingIntent actionPi(Context c, String action, int nid, String key,
-                                          String id, String date, String title, String body) {
+                                          String id, String date, String title, String body,
+                                          String wa, boolean waTap) {
         Intent i = new Intent(c, ActionReceiver.class).setAction(action);
         i.putExtra("nid", nid);
         i.putExtra("id", id);
         i.putExtra("date", date);
         i.putExtra("title", title);
         i.putExtra("body", body);
+        i.putExtra("wa", wa);
+        i.putExtra("waTap", waTap);
         return PendingIntent.getBroadcast(c, (key + action).hashCode(), i,
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
     }

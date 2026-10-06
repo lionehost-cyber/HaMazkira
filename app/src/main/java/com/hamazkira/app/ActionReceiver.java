@@ -30,7 +30,9 @@ public class ActionReceiver extends BroadcastReceiver {
                         .put("key", "snooze|" + id + "|" + until)
                         .put("id", id).put("date", date).put("at", until)
                         .put("title", i.getStringExtra("title"))
-                        .put("body", i.getStringExtra("body")));
+                        .put("body", i.getStringExtra("body"))
+                        .put("wa", i.getStringExtra("wa") == null ? "" : i.getStringExtra("wa"))
+                        .put("waTap", i.getBooleanExtra("waTap", false)));
                 AlarmStore.pushAction(c, new JSONObject()
                         .put("type", "snooze").put("id", id).put("until", until));
             }

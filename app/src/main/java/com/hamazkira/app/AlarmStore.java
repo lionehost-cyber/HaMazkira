@@ -54,6 +54,8 @@ final class AlarmStore {
         i.putExtra("date", a.optString("date"));
         i.putExtra("title", a.optString("title"));
         i.putExtra("body", a.optString("body"));
+        i.putExtra("wa", a.optString("wa"));
+        i.putExtra("waTap", a.optBoolean("waTap"));
         return PendingIntent.getBroadcast(c, code(a.optString("key")), i,
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
     }
