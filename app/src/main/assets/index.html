@@ -35,7 +35,7 @@ button{cursor:pointer}
 :focus-visible{outline:3px solid var(--pen);outline-offset:2px}
 .wrap{max-width:640px;margin:0 auto;padding-inline:16px;padding-block:12px 120px}
 header.top{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;padding-block:8px 14px;border-bottom:2px solid var(--ink)}
-.brand{font-family:var(--f-display);font-weight:900;font-size:2rem;line-height:1;letter-spacing:-.01em}
+.brand{font-family:var(--f-display);font-weight:900;font-size:clamp(1.45rem,7vw,2rem);white-space:nowrap;line-height:1;letter-spacing:-.01em}
 .dates{text-align:left;font-size:.9rem;color:var(--muted)}
 .dates b{display:block;color:var(--ink);font-weight:700;font-size:1rem}
 .sync{font-size:.75rem;color:var(--muted);display:flex;align-items:center;gap:6px;justify-content:flex-end}
@@ -82,6 +82,21 @@ h2.sec span{font-family:var(--f-body);font-size:.85rem;color:var(--muted);font-w
 .act{border:1px solid var(--line);background:var(--paper);border-radius:9px;padding:6px 10px;font-size:.85rem;font-weight:600;display:inline-flex;align-items:center;gap:5px}
 .act.ok{background:var(--ok-soft);color:var(--ok);border-color:transparent}
 .act svg{width:16px;height:16px}
+.act.del{color:var(--stamp)}
+.act.del.armed{background:var(--stamp);color:#fff;border-color:var(--stamp)}
+/* notebook */
+.note{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;box-shadow:var(--shadow)}
+.note.has-rem{border-inline-start:5px solid var(--pen)}
+.note .ntext{white-space:pre-wrap;overflow-wrap:anywhere;font-size:.98rem}
+.note .ntext b{display:block;font-size:1.05rem}
+.note .nfoot{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:8px;font-size:.78rem;color:var(--muted)}
+.chip.rem{background:var(--pen-soft);color:var(--pen);border-color:transparent}
+.remset{border:1px solid var(--line);background:var(--card);border-radius:12px;padding:10px 12px;margin-bottom:12px}
+.remset .sw{display:flex;align-items:center;gap:10px;font-weight:700}
+.remset .sw input{width:22px;height:22px;accent-color:var(--pen)}
+.remset .more{margin-top:10px}
+.hbtn{border:1px solid var(--line);background:var(--card);border-radius:10px;width:40px;height:40px;display:inline-flex;align-items:center;justify-content:center;color:var(--ink)}
+.hbtn svg{width:20px;height:20px}
 .empty{background:var(--card);border:1px dashed var(--line);border-radius:14px;padding:18px;text-align:center;color:var(--muted)}
 /* calendar */
 .cal-head{display:flex;justify-content:space-between;align-items:center;margin-block:16px 8px}
@@ -138,16 +153,19 @@ nav.tabs .plus span.ring{width:48px;height:48px;border-radius:50%;background:var
       <div class="brand">המזכירה שלי</div>
       <div class="sync"><i class="dot" id="syncDot"></i><span id="syncTxt">טוען…</span></div>
     </div>
-    <div class="dates"><b id="gDate"></b><span id="hDate"></span></div>
+    <div style="display:flex;gap:10px;align-items:flex-end">
+      <div class="dates"><b id="gDate"></b><span id="hDate"></span></div>
+      <button class="hbtn" id="hSearch" aria-label="חיפוש"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg></button>
+    </div>
   </header>
   <main id="view"></main>
 </div>
 
 <nav class="tabs" aria-label="ניווט">
   <button data-tab="today" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>היום שלי</button>
+  <button data-tab="notes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3h11a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6Z"/><path d="M6 3v18M10 8h6M10 12h6M10 16h4"/></svg>פנקס</button>
+  <button class="plus" id="navAdd" aria-label="חדשה"><span class="ring"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M12 5v14M5 12h14"/></svg></span>חדשה</button>
   <button data-tab="cal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>היומן שלי</button>
-  <button class="plus" id="navAdd" aria-label="משימה חדשה"><span class="ring"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M12 5v14M5 12h14"/></svg></span>חדשה</button>
-  <button data-tab="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>חיפוש</button>
   <button data-tab="settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-2.7 1.1V21a2 2 0 1 1-4 0v-.1a1.6 1.6 0 0 0-2.7-1.1l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A1.6 1.6 0 0 0 3.6 14H3a2 2 0 1 1 0-4h.1a1.6 1.6 0 0 0 1.1-2.7l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1A1.6 1.6 0 0 0 10 3.6V3a2 2 0 1 1 4 0v.1a1.6 1.6 0 0 0 2.7 1.1l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1A1.6 1.6 0 0 0 20.4 10H21a2 2 0 1 1 0 4h-.1a1.6 1.6 0 0 0-1.5 1Z"/></svg>הגדרות</button>
 </nav>
 <div id="layer"></div>
@@ -177,16 +195,18 @@ const ICON={
   edit:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20h4L19 9l-4-4L4 16v4Z"/></svg>',
   wa:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20l1.3-4A8 8 0 1 1 8 18.7L4 20Z"/></svg>',
   cal:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M12 13v5M9.5 15.5h5"/></svg>',
+  bell:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4Z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg>',
+  trash:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg>',
   pin:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s7-6.2 7-11.5A7 7 0 0 0 5 9.5C5 14.8 12 21 12 21Z"/><circle cx="12" cy="9.5" r="2.5"/></svg>'
 };
 
 /* ---------- state & storage ---------- */
-let tasks=[]; let settings={phone:"",defaultRem:[60]};
+let tasks=[]; let notes=[]; let notesFilter="all"; let settings={phone:"",defaultRem:[60]};
 let store=null, col=null, mode="local";
 let tab="today", calMonth=new Date(), selDay=ymd(new Date()), query="";
 const LS="mazkira.v1";
-function lsLoad(){try{const j=JSON.parse(localStorage.getItem(LS)||"null");if(j){tasks=j.tasks||[];settings=Object.assign(settings,j.settings||{})}}catch(e){}}
-function lsSave(){try{localStorage.setItem(LS,JSON.stringify({tasks,settings}))}catch(e){}}
+function lsLoad(){try{const j=JSON.parse(localStorage.getItem(LS)||"null");if(j){tasks=j.tasks||[];notes=j.notes||[];settings=Object.assign(settings,j.settings||{})}}catch(e){}}
+function lsSave(){try{localStorage.setItem(LS,JSON.stringify({tasks,notes,settings}))}catch(e){}}
 function setSync(on,txt){$("#syncDot").classList.toggle("on",on);$("#syncTxt").textContent=txt}
 
 const NATIVE=!!window.Android;
@@ -194,6 +214,11 @@ function persist(){lsSave();syncNative()}
 function saveTask(t){t.updated=Date.now();const i=tasks.findIndex(x=>x.id===t.id);if(i>=0)tasks[i]=t;else tasks.push(t);persist();render()}
 function removeTask(id){tasks=tasks.filter(x=>x.id!==id);persist();render()}
 function saveSettings(){persist()}
+function saveNote(n){n.updated=Date.now();const i=notes.findIndex(x=>x.id===n.id);if(i>=0)notes[i]=n;else notes.unshift(n);persist();render()}
+function removeNote(id){notes=notes.filter(x=>x.id!==id);persist();render()}
+const noteTitle=n=>(n.text||"").split("\n")[0].trim().slice(0,80)||"רשומה";
+const noteBody=n=>(n.text||"").split("\n").slice(1).join("\n").trim();
+const fmtWhen=ms=>{const d=new Date(ms),t=ymd(new Date());const k=ymd(d);return (k===t?"היום":k===ymd(addDays(new Date(),1))?"מחר":fmtShort.format(d))+" בשעה "+hm(d)};
 /* hand every upcoming reminder to Android so it rings even when the app is closed */
 function syncNative(){
   if(!NATIVE)return; const now=Date.now(),list=[];
@@ -203,16 +228,22 @@ function syncNative(){
     (t.reminders||[]).forEach(m=>{const w=when0-m*6e4;if(w>now)list.push({key:`${t.id}|${t.date}|${m}`,id:t.id,date:t.date,at:w,wa:waLink(t),waTap:!!settings.waTap,title:(m?`בעוד ${remLabel(m).replace(" לפני","")}: `:"עכשיו: ")+t.title,body})});
     if(t.snoozeUntil&&Number(t.snoozeUntil)>now)list.push({key:`snooze|${t.id}|${t.snoozeUntil}`,id:t.id,date:t.date,at:Number(t.snoozeUntil),wa:waLink(t),waTap:!!settings.waTap,title:"תזכורת: "+t.title,body});
   }
+  for(const n of notes){ const w=Number(n.remindAt||0);
+    if(w>now)list.push({key:`note|${n.id}|${w}`,id:"n:"+n.id,date:"",at:w,wa:"",waTap:false,title:"מהפנקס: "+noteTitle(n),body:noteBody(n)||noteTitle(n)});
+  }
   try{Android.setAlarms(JSON.stringify(list))}catch(e){}
 }
 /* buttons pressed on a notification while the app was closed */
 window.applyNativeActions=function(){
   if(!NATIVE)return; let acts=[];try{acts=JSON.parse(Android.takeActions()||"[]")}catch(e){}
   let changed=false;
-  for(const a of acts){const t=tasks.find(x=>x.id===a.id);if(!t)continue;
+  for(const a of acts){
+    if(String(a.id).startsWith("n:")){const n=notes.find(x=>"n:"+x.id===a.id);if(!n)continue;
+      if(a.type==="done")n.remindAt=null;else if(a.type==="snooze")n.remindAt=Number(a.until);changed=true;continue}
+    const t=tasks.find(x=>x.id===a.id);if(!t)continue;
     if(a.type==="done"&&!t.done&&t.date===a.date){markDone(t,true);changed=true}
     else if(a.type==="snooze"){const i=tasks.indexOf(t);tasks[i]=Object.assign({},t,{snoozeUntil:a.until});changed=true}}
-  if(changed){lsSave()} render();
+  if(changed){lsSave();syncNative()} render();
 };
 window.handleBack=function(){
   if($("#layer").innerHTML){closeSheet(true);alarmOpen=false;return true}
@@ -332,6 +363,7 @@ function checkReminders(){
     else (t.reminders||[]).forEach(m=>{const when=at(t).getTime()-m*6e4;const key=t.date+"|"+m;if(now>=when&&now-when<6*3600e3&&!(t.fired||[]).includes(key))due.push(key)});
     if(due.length){showAlarm(t,due);return}
   }
+  for(const n of notes){const w=Number(n.remindAt||0);if(w&&now>=w&&!n.firedAt){n.firedAt=w;lsSave();beep();toast("מהפנקס: "+noteTitle(n));render();return}}
 }
 setInterval(checkReminders,15000);
 function showAlarm(t,keys){
@@ -419,6 +451,52 @@ function openForm(t){
   });
 }
 
+/* ---------- notebook form ---------- */
+function openNote(n){
+  const isNew=!n||!n.id; n=Object.assign({text:"",remindAt:null},n||{});
+  const has=!!n.remindAt&&Number(n.remindAt)>Date.now();
+  const def=has?new Date(Number(n.remindAt)):new Date(Date.now()+60*6e4);
+  openSheet(`<h3>${isNew?"רשומה חדשה":"עריכת רשומה"}</h3>
+    <form id="nf">
+    <label class="field"><span>מה לרשום? השורה הראשונה היא הכותרת</span><textarea class="inp" id="n-text" style="min-height:150px" placeholder="רשימת קניות&#10;חלב, לחם, ביצים">${esc(n.text)}</textarea></label>
+    <div class="remset">
+      <label class="sw"><input type="checkbox" id="n-on" ${has?"checked":""}>${ICON.bell.replace("<svg",'<svg style="width:20px;height:20px"')}להזכיר לי על הרשומה הזו</label>
+      <div class="more" id="n-more" ${has?"":"hidden"}>
+        <div class="seg" id="n-quick" style="margin-bottom:10px"><button type="button" data-q="60">בעוד שעה</button><button type="button" data-q="eve">הערב 20:00</button><button type="button" data-q="tom">מחר 09:00</button><button type="button" data-q="week">בעוד שבוע</button></div>
+        <div class="row2">
+          <label class="field"><span>תאריך</span><input class="inp" type="date" id="n-date" value="${ymd(def)}"></label>
+          <label class="field"><span>שעה</span><input class="inp" type="time" id="n-time" value="${hm(def)}"></label>
+        </div>
+      </div>
+    </div>
+    <div class="foot">${isNew?'<button type="button" class="btn ghost" data-close>ביטול</button>':`<button type="button" class="btn ghost" id="n-del" style="color:var(--stamp)">${ICON.trash.replace("<svg",'<svg style="width:16px;height:16px;vertical-align:-3px"')} מחיקה</button>`}<button class="btn" type="submit">שמירה</button></div>
+    </form>`,el=>{
+    $("#n-on",el).addEventListener("change",e=>{$("#n-more",el).hidden=!e.target.checked});
+    $("#n-quick",el).addEventListener("click",e=>{const q=e.target.closest("[data-q]")?.dataset.q;if(!q)return;let d=new Date();
+      if(q==="60")d=new Date(Date.now()+60*6e4);else if(q==="eve"){d.setHours(20,0,0,0);if(d<new Date())d=addDays(d,1)}else if(q==="tom"){d=addDays(d,1);d.setHours(9,0,0,0)}else{d=addDays(d,7);d.setSeconds(0,0)}
+      $("#n-date",el).value=ymd(d);$("#n-time",el).value=hm(d)});
+    let armed=false;
+    $("#n-del",el)?.addEventListener("click",e=>{if(!armed){armed=true;e.currentTarget.textContent="לחץ שוב למחיקה";return}removeNote(n.id);closeSheet();toast("הרשומה נמחקה")});
+    $("#nf",el).addEventListener("submit",e=>{e.preventDefault();
+      const text=$("#n-text",el).value.trim(); if(!text){toast("הרשומה ריקה");return}
+      let remindAt=null;
+      if($("#n-on",el).checked){const dv=$("#n-date",el).value,tv=$("#n-time",el).value||"09:00";if(!dv){toast("בחר תאריך לתזכורת");return}
+        const d=parseYmd(dv);const[h,m]=tv.split(":").map(Number);d.setHours(h,m,0,0);
+        if(d.getTime()<=Date.now()){toast("הזמן שבחרת כבר עבר");return} remindAt=d.getTime()}
+      const nn=Object.assign({},n,{id:n.id||uid(),text,remindAt,created:n.created||Date.now()});
+      if(nn.remindAt!==n.remindAt)delete nn.firedAt;
+      saveNote(nn);closeSheet();toast(remindAt?"נשמר. אזכיר לך "+fmtWhen(remindAt):"הרשומה נשמרה");
+    });
+    if(isNew)setTimeout(()=>$("#n-text",el).focus(),50);
+  });
+}
+/* two taps to delete: the first arms the button, the second deletes */
+function armDelete(btn,doIt){
+  if(btn.classList.contains("armed")){doIt();return}
+  btn.classList.add("armed");btn.lastChild.textContent="בטוח? לחץ שוב";
+  setTimeout(()=>{if(btn.isConnected){btn.classList.remove("armed");btn.lastChild.textContent="מחק"}},4000);
+}
+
 /* ---------- rendering ---------- */
 function card(t,opts={}){
   const d=at(t),late=!t.done&&d<new Date()&&t.time&&!opts.example;
@@ -439,6 +517,7 @@ function card(t,opts={}){
       ${opts.example?"":`<div class="actions">
         ${t.done?`<button class="act" data-a="undo">החזר לפעילות</button>`:`<button class="act ok" data-a="done">${ICON.check}בוצע</button><button class="act" data-a="snooze">${ICON.snooze}דחה</button>`}
         <button class="act" data-a="edit">${ICON.edit}קבע מחדש</button>
+        ${t._virt?"":`<button class="act del" data-a="del">${ICON.trash}<span>מחק</span></button>`}
         <a class="act" href="${waLink(t)}" target="_blank" rel="noopener">${ICON.wa}WhatsApp</a>
         <a class="act" href="${gcalLink(t)}" target="_blank" rel="noopener">${ICON.cal}Google</a>
         ${downloads?`<button class="act" data-a="ics">${ICON.cal}ליומן הטלפון</button>`:""}
@@ -484,10 +563,33 @@ function viewCal(){
     <h2 class="sec">${fmtLong.format(parseYmd(selDay))}<button class="btn small" id="addDay">הוסף ליום הזה</button></h2>
     ${list.length?`<div class="ledger">${list.map(t=>card(t)).join("")}</div>`:`<div class="empty">אין משימות ביום הזה.</div>`}`;
 }
+function noteCard(n){
+  const w=Number(n.remindAt||0),future=w>Date.now();
+  return `<article class="note${future?" has-rem":""}" data-nid="${n.id}">
+    <div class="ntext"><b>${esc(noteTitle(n))}</b>${noteBody(n)?esc(noteBody(n)):""}</div>
+    <div class="nfoot">
+      ${future?`<span class="chip rem">${ICON.bell.replace("<svg",'<svg style="width:13px;height:13px"')} ${fmtWhen(w)}</span>`:w?`<span class="chip">הוזכר ${fmtShort.format(new Date(w))}</span>`:""}
+      <span>נכתב ${fmtShort.format(new Date(n.created||n.updated||Date.now()))}</span>
+    </div>
+    <div class="actions">
+      <button class="act" data-n="edit">${ICON.edit}עריכה</button>
+      <button class="act" data-n="rem">${ICON.bell}${future?"שינוי תזכורת":"הזכר לי"}</button>
+      ${future?`<button class="act" data-n="norem">ביטול תזכורת</button>`:""}
+      <button class="act del" data-n="del">${ICON.trash}<span>מחק</span></button>
+    </div></article>`;
+}
+function viewNotes(){
+  const withRem=notes.filter(n=>Number(n.remindAt||0)>Date.now());
+  let list=notesFilter==="rem"?withRem.slice().sort((a,b)=>a.remindAt-b.remindAt):notes.slice().sort((a,b)=>(b.updated||0)-(a.updated||0));
+  return `<h2 class="sec">הפנקס שלי<button class="btn small" id="addNote">+ רשומה חדשה</button></h2>
+    <div class="seg" id="nfilter" style="margin-bottom:12px"><button data-f="all" aria-pressed="${notesFilter==="all"}">הכל (${notes.length})</button><button data-f="rem" aria-pressed="${notesFilter==="rem"}">עם תזכורת (${withRem.length})</button></div>
+    ${list.length?`<div class="ledger">${list.map(noteCard).join("")}</div>`:`<div class="empty">${notesFilter==="rem"?"אין רשומות עם תזכורת.":"הפנקס ריק. לחץ „רשומה חדשה” כדי לכתוב רשומה ראשונה. אפשר לבחור לכל רשומה אם להזכיר לך עליה."}</div>`}`;
+}
 function viewSearch(){
   const q=query.trim();const res=q?tasks.filter(t=>[t.title,t.details,t.location].join(" ").includes(q)).sort((a,b)=>byTime(b,a)):[];
-  return `<h2 class="sec">חיפוש במשימות</h2><input class="inp" id="sq" type="search" placeholder="מילה מהכותרת, מהפירוט או מהמיקום" value="${esc(query)}">
-    <div class="ledger" style="margin-top:12px" id="sres">${q?(res.length?res.map(t=>card(t,{showDate:true})).join(""):'<div class="empty">לא נמצאו משימות.</div>'):`<div class="empty">${tasks.length} משימות שמורות, כולל ישנות שבוצעו.</div>`}</div>`;
+  const nres=q?notes.filter(n=>(n.text||"").includes(q)):[];
+  return `<h2 class="sec">חיפוש</h2><input class="inp" id="sq" type="search" placeholder="מילה ממשימה או מרשומה בפנקס" value="${esc(query)}">
+    <div class="ledger" style="margin-top:12px" id="sres">${q?(res.length||nres.length?res.map(t=>card(t,{showDate:true})).join("")+nres.map(noteCard).join(""):'<div class="empty">לא נמצא דבר.</div>'):`<div class="empty">${tasks.length} משימות ו-${notes.length} רשומות שמורות.</div>`}</div>`;
 }
 function viewSettings(){
   const open=tasks.filter(t=>!t.done);
@@ -501,33 +603,40 @@ function viewSettings(){
   <div class="card"><h3>התראות</h3><p>${window.Android&&!Android.notificationsEnabled()?"ההתראות כבויות. בלי הרשאה המזכירה לא תוכל להזכיר לך כשהיא סגורה.":"התזכורות מגיעות כהתראה בטלפון גם כשהאפליקציה סגורה, וגם אחרי הפעלה מחדש של הטלפון."}</p>
     ${window.Android?'<button class="btn ghost" id="s-notif">הגדרות התראות</button>':""}</div>
   <div class="card"><h3>גיבוי</h3><p>המשימות שמורות בטלפון. כדי לשמור עותק, שלח את הגיבוי לעצמך ב-WhatsApp, במייל או ל-Google Drive.</p>
-    <button class="btn" id="s-backup">שליחת גיבוי (${tasks.length} משימות)</button>
+    <button class="btn" id="s-backup">שליחת גיבוי (${tasks.length} משימות, ${notes.length} רשומות)</button>
     <label class="field" style="margin-top:12px"><span>שחזור: הדבק כאן את טקסט הגיבוי</span><textarea class="inp" id="s-restore" dir="ltr"></textarea></label>
     <button class="btn ghost" id="s-restore-btn">שחזור מגיבוי</button></div>`;
 }
 function render(){
   const v=$("#view"); const qFocus=document.activeElement&&document.activeElement.id;
-  v.innerHTML=tab==="today"?viewToday():tab==="cal"?viewCal():tab==="search"?viewSearch():viewSettings();
+  v.innerHTML=tab==="today"?viewToday():tab==="cal"?viewCal():tab==="notes"?viewNotes():tab==="search"?viewSearch():viewSettings();
   document.querySelectorAll("nav.tabs [data-tab]").forEach(b=>{if(b.dataset.tab===tab)b.setAttribute("aria-current","page");else b.removeAttribute("aria-current")});
   if(qFocus==="sq"){const s=$("#sq");if(s){s.focus();s.setSelectionRange(s.value.length,s.value.length)}}
 }
 const now0=new Date();$("#gDate").textContent=fmtLong.format(now0);$("#hDate").textContent=fmtHeb?fmtHeb.format(now0):"";
 
 /* ---------- events ---------- */
-document.querySelector("nav.tabs").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;if(b.id==="navAdd"){openForm(tab==="cal"?{date:selDay}:null);return}tab=b.dataset.tab;if(tab==="today")selDay=ymd(new Date());render();window.scrollTo(0,0)});
+document.querySelector("nav.tabs").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;if(b.id==="navAdd"){if(tab==="notes")openNote();else openForm(tab==="cal"?{date:selDay}:null);return}tab=b.dataset.tab;if(tab==="today")selDay=ymd(new Date());render();window.scrollTo(0,0)});
+$("#hSearch").addEventListener("click",()=>{tab="search";render();window.scrollTo(0,0);setTimeout(()=>$("#sq")?.focus(),50)});
 $("#view").addEventListener("click",e=>{
+  if(e.target.closest("#addNote")){openNote();return}
+  const nf=e.target.closest("#nfilter [data-f]");if(nf){notesFilter=nf.dataset.f;render();return}
+  const na=e.target.closest("[data-n]");if(na){const n=notes.find(x=>x.id===na.closest("[data-nid]").dataset.nid);if(!n)return;
+    ({edit:()=>openNote(n),rem:()=>openNote(Object.assign({},n,{remindAt:Number(n.remindAt)>Date.now()?n.remindAt:Date.now()+60*6e4})),
+      norem:()=>{saveNote(Object.assign({},n,{remindAt:null}));toast("התזכורת בוטלה")},
+      del:()=>armDelete(na,()=>{removeNote(n.id);toast("הרשומה נמחקה")})})[na.dataset.n]?.();return}
   const mo=e.target.closest("[data-mo]");if(mo){calMonth=new Date(calMonth.getFullYear(),calMonth.getMonth()+Number(mo.dataset.mo),1);render();return}
   const dy=e.target.closest("[data-day]");if(dy){selDay=dy.dataset.day;const d=parseYmd(selDay);if(d.getMonth()!==calMonth.getMonth())calMonth=new Date(d.getFullYear(),d.getMonth(),1);render();return}
   if(e.target.closest("#addDay")){openForm({date:selDay});return}
   if(e.target.closest("#s-notif")){Android.openNotificationSettings();return}
-  if(e.target.closest("#s-backup")){const txt=JSON.stringify({app:"hamazkira",v:1,tasks,settings});if(window.Android)Android.share(txt);else{navigator.clipboard?.writeText(txt).then(()=>toast("הגיבוי הועתק"),()=>{})}return}
-  if(e.target.closest("#s-restore-btn")){try{const j=JSON.parse($("#s-restore").value);if(!Array.isArray(j.tasks))throw 0;const ids=new Set(tasks.map(t=>t.id));j.tasks.forEach(t=>{if(!ids.has(t.id))tasks.push(t)});settings=Object.assign(settings,j.settings||{});persist();render();toast(`שוחזרו ${j.tasks.length} משימות`)}catch(err){toast("הטקסט שהודבק אינו גיבוי תקין")}return}
+  if(e.target.closest("#s-backup")){const txt=JSON.stringify({app:"hamazkira",v:1,tasks,notes,settings});if(window.Android)Android.share(txt);else{navigator.clipboard?.writeText(txt).then(()=>toast("הגיבוי הועתק"),()=>{})}return}
+  if(e.target.closest("#s-restore-btn")){try{const j=JSON.parse($("#s-restore").value);if(!Array.isArray(j.tasks))throw 0;const ids=new Set(tasks.map(t=>t.id));j.tasks.forEach(t=>{if(!ids.has(t.id))tasks.push(t)});const nids=new Set(notes.map(n=>n.id));(j.notes||[]).forEach(n=>{if(!nids.has(n.id))notes.push(n)});settings=Object.assign(settings,j.settings||{});persist();render();toast(`שוחזרו ${j.tasks.length} משימות`)}catch(err){toast("הטקסט שהודבק אינו גיבוי תקין")}return}
   if(e.target.closest("#mic")){Android.startVoice();return}
   if(e.target.closest("#s-ics")){saveIcs(tasks.filter(t=>!t.done),"hamazkira.ics");return}
   const wt=e.target.closest("#s-watap button");if(wt){settings.waTap=wt.dataset.v==="1";saveSettings();render();toast(settings.waTap?"לחיצה על התזכורת תפתח את WhatsApp":"לחיצה על התזכורת תפתח את המזכירה");return}
   const sr=e.target.closest("#s-rem button");if(sr){sr.setAttribute("aria-pressed",String(sr.getAttribute("aria-pressed")!=="true"));settings.defaultRem=[...document.querySelectorAll("#s-rem [aria-pressed=true]")].map(b=>Number(b.dataset.v));saveSettings();return}
   const a=e.target.closest("[data-a]");if(!a)return;const id=a.closest("[data-id]").dataset.id;const t=tasks.find(x=>x.id===id);if(!t)return;
-  ({done:()=>markDone(t),undo:()=>saveTask(Object.assign({},t,{done:false})),snooze:()=>snoozeMenu(t),edit:()=>openForm(t),ics:()=>saveIcs([t],"tazkoret.ics")})[a.dataset.a]?.();
+  ({done:()=>markDone(t),undo:()=>saveTask(Object.assign({},t,{done:false})),snooze:()=>snoozeMenu(t),edit:()=>openForm(t),del:()=>armDelete(a,()=>{removeTask(t.id);toast("המשימה נמחקה")}),ics:()=>saveIcs([t],"tazkoret.ics")})[a.dataset.a]?.();
 });
 $("#view").addEventListener("submit",e=>{if(e.target.id!=="qf")return;e.preventDefault();const v=$("#q").value.trim();if(!v){openForm();return}const p=parseHebrew(v);$("#q").value="";openForm(p)});
 $("#view").addEventListener("input",e=>{if(e.target.id==="sq"){query=e.target.value;render()}});
